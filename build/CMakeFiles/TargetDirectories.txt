@@ -1,0 +1,3 @@
+C:/Users/prana/Github-Repos/mathboard/build/CMakeFiles/mathboard.dir
+C:/Users/prana/Github-Repos/mathboard/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/prana/Github-Repos/mathboard/build/CMakeFiles/ZERO_CHECK.dir
