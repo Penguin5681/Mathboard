@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(mathboard WIN32
     src/main.cpp
+    src/canvas/Canvas.cpp
+    src/canvas/StrokeCapture.cpp
 )
 
 target_link_libraries(mathboard PRIVATE
