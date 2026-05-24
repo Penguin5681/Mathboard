@@ -1,4 +1,5 @@
 #include "Canvas.h"
+#include "Smoothing.h"
 #include <d2d1helper.h>
 
 namespace mb
@@ -95,15 +96,15 @@ namespace mb
 
 	void Canvas::drawStroke(const Stroke& stroke)
 	{
-		if (stroke.points.size() < 2)
-		{
-			return;
-		}
+		if (stroke.points.size() < 2) return;
 
 		float r = ((stroke.style.color >> 16) & 0xFF) / 255.0f;
 		float g = ((stroke.style.color >> 8) & 0xFF) / 255.0f;
 		float b = ((stroke.style.color >> 0) & 0xFF) / 255.0f;
 		m_brush->SetColor(D2D1::ColorF(r, g, b));
+
+		auto segments = catmullRomSegments(stroke.points, 0.3f);
+		if (segments.empty()) return;
 
 		Microsoft::WRL::ComPtr<ID2D1PathGeometry> path;
 		m_factory->CreatePathGeometry(path.GetAddressOf());
@@ -112,25 +113,27 @@ namespace mb
 		path->Open(sink.GetAddressOf());
 
 		sink->BeginFigure(
-			D2D1::Point2F(stroke.points[0].x, stroke.points[0].y),
+			D2D1::Point2F(segments[0].p0.x, segments[0].p0.y),
 			D2D1_FIGURE_BEGIN_HOLLOW
 		);
 
-		// this simply builds the line between two given points
-		// NOTE: This is not the smoother beizer version, it'll be upgraded later
-		for (size_t i = 1; i < stroke.points.size(); ++i)
+		for (const auto& seg : segments)
 		{
-			sink->AddLine(D2D1::Point2F(
-				stroke.points[i].x,
-				stroke.points[i].y
+			sink->AddBezier(D2D1::BezierSegment(
+				D2D1::Point2F(seg.cp1.x, seg.cp1.y),
+				D2D1::Point2F(seg.cp2.x, seg.cp2.y),
+				D2D1::Point2F(seg.p1.x, seg.p1.y)
 			));
 		}
 
 		sink->EndFigure(D2D1_FIGURE_END_OPEN);
 		sink->Close();
 
-		float pressure = stroke.points.back().pressure;
-		float width = stroke.style.width * (0.5f + pressure * 0.5f);
+		float totalPressure = 0.0f;
+		for (const auto& pt : stroke.points)
+			totalPressure += pt.pressure;
+		float avgPressure = totalPressure / stroke.points.size();
+		float width = stroke.style.width * (0.4f + avgPressure * 0.6f);
 
 		m_renderTarget->DrawGeometry(path.Get(), m_brush.Get(), width);
 	}
