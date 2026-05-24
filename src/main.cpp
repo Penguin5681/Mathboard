@@ -41,7 +41,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
-
+ 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
     EnableMouseInPointer(TRUE);

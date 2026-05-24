@@ -78,18 +78,18 @@ namespace mb
 		for (const auto& stroke : m_strokes)
 		{
 			drawStroke(stroke);
+		}
 
-			if (m_hasLive)
-			{
-				drawStroke(m_liveStroke);
-			}
+		if (m_hasLive)
+		{
+			drawStroke(m_liveStroke);
+		}
 
-			HRESULT hr = m_renderTarget->EndDraw();
+		HRESULT hr = m_renderTarget->EndDraw();
 
-			if (hr == D2DERR_RECREATE_TARGET)
-			{
-				discardResource();
-			}
+		if (hr == D2DERR_RECREATE_TARGET)
+		{
+			discardResource();
 		}
 	}
 
