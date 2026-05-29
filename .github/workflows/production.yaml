@@ -1,0 +1,68 @@
+name: Production Deployment
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  build-test-deploy:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup MSVC & Build Environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure and Build C++ (CMake)
+        run: |
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release --parallel
+
+      - name: Run Test Cases (CTest)
+        working-directory: build
+        run: ctest -C Release --output-on-failure
+
+      - name: Compile Inno Setup Script (.iss)
+        # GitHub Actions Windows runners have Inno Setup pre-installed
+        run: iscc BuildExecutable.iss
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Generate latest.json Metadata
+        shell: bash
+        run: |
+          VERSION="1.0.${{ github.run_number }}"
+          EXE_NAME="MathBoard-Setup-v${VERSION}.exe"
+          NOTES="${{ github.event.head_commit.message }}"
+          
+          # Rename the compiled exe to include the version
+          mv Output/MathBoard-Setup.exe Output/$EXE_NAME
+          
+          # Create the JSON file for the website to read
+          cat <<EOF > Output/latest.json
+          {
+            "version": "$VERSION",
+            "download_url": "https://storage.googleapis.com/mathboard-bucket/$EXE_NAME",
+            "release_notes": "$NOTES"
+          }
+          EOF
+
+      - name: Upload to Google Cloud Storage
+        working-directory: Output
+        run: |
+          gcloud storage cp *.exe gs://mathboard-bucket/
+          gcloud storage cp latest.json gs://mathboard-bucket/
+          
+          # Ensure the JSON file isn't aggressively cached by browsers
+          gcloud storage objects update gs://mathboard-bucket/latest.json --cache-control="no-cache, max-age=0"
