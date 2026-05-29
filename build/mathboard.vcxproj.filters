@@ -4,6 +4,15 @@
     <ClCompile Include="C:\Users\prana\Github-Repos\mathboard\src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\prana\Github-Repos\mathboard\src\canvas\Canvas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\prana\Github-Repos\mathboard\src\canvas\StrokeCapture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\prana\Github-Repos\mathboard\src\canvas\Smoothing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="C:\Users\prana\Github-Repos\mathboard\CMakeLists.txt" />
